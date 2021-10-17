@@ -10,7 +10,7 @@ public class Vector extends util.Point{
 	
 	//pointing from point a to point b
 	
-	public Vector(util.Point a, util.Point b) {
+	public Vector(Point a, Point b) {
 		super(b.x - a.x, b.y - a.y);
 	}
 	
