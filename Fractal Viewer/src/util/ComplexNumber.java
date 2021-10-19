@@ -57,6 +57,11 @@ public class ComplexNumber
         this.real = real;
         this.imaginary = imaginary;
     }
+    
+    public ComplexNumber(ComplexNumber c) {
+    	this.real = c.getRe();
+    	this.imaginary = c.getIm();
+    }
 
     /**
     * Adds another <code>ComplexNumber</code> to the current complex number.
