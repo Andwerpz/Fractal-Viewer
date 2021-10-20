@@ -24,18 +24,19 @@ public class Board {
 	
 	
 	public boolean mandelbrot = true;
-	public int mandelbrotMaxIterations = 50;
+	public int mandelbrotMaxIterations = 50;	//how many iterations per pixel
 	
-	public boolean newtonRaphson = true;
-	public int newtonRaphsonIterations = 5;
-	public ArrayList<ComplexNumber> roots = new ArrayList<ComplexNumber>(Arrays.asList(new ComplexNumber(-1, -1), new ComplexNumber(-1, 1), new ComplexNumber(-2, 0), new ComplexNumber(1, 1), new ComplexNumber(1, -1)));
+	public boolean newtonRaphson = false;
+	public int newtonRaphsonMaxIterations = 50;	//iterate until you get to a root, or if you can't find one, then color black.
+	public double newtonRaphsonCushion = 0.001;	//how close do you have to get to a root to reach it
+	public ArrayList<ComplexNumber> roots = new ArrayList<ComplexNumber>(Arrays.asList(new ComplexNumber(1, 0), new ComplexNumber(-0.5, Math.sqrt(3) / 2d), new ComplexNumber(-0.5, -Math.sqrt(3) / 2d), new ComplexNumber(-1.5, Math.sqrt(3) / 2d), new ComplexNumber(-1.5, -Math.sqrt(3) / 2d)));
 	public ArrayList<Color> rootColors = new ArrayList<Color>(Arrays.asList(Color.RED, Color.BLUE, Color.GREEN, Color.PINK, Color.CYAN));
 	public ArrayList<ComplexNumber> function = new ArrayList<ComplexNumber>();
 	public ArrayList<ComplexNumber> derivative = new ArrayList<ComplexNumber>();
 	
 	public boolean rootHeld = false;	//true if the user is dragging a root
 	public int whichRootHeld = 0;
-	public int rootHitboxRadius = 5;	//screen size of root
+	public int rootHitboxRadius = 7;	//screen size of root
 	
 	public double xLow = -2;
 	public double xHigh = 2;
@@ -106,12 +107,16 @@ public class Board {
 		g.drawImage(fractalImg, 0, 0, null);
 		
 		//if newton-raphson, draw the roots
-		for(int i = 0; i < this.roots.size(); i++) {
-			double screenX = ((this.roots.get(i).getRe() - xLow) / xRange) * (double) MainPanel.WIDTH;
-			double screenY = ((-this.roots.get(i).getIm() + yHigh) / yRange) * (double) MainPanel.HEIGHT;
-			
-			g.drawOval((int) screenX - this.rootHitboxRadius, (int) screenY - this.rootHitboxRadius, this.rootHitboxRadius * 2, this.rootHitboxRadius * 2);
+		if(this.newtonRaphson) {
+			g.setColor(Color.WHITE);
+			for(int i = 0; i < this.roots.size(); i++) {
+				double screenX = ((this.roots.get(i).getRe() - xLow) / xRange) * (double) MainPanel.WIDTH;
+				double screenY = ((-this.roots.get(i).getIm() + yHigh) / yRange) * (double) MainPanel.HEIGHT;
+				
+				g.fillOval((int) screenX - this.rootHitboxRadius, (int) screenY - this.rootHitboxRadius, this.rootHitboxRadius * 2, this.rootHitboxRadius * 2);
+			}
 		}
+		
 		
 		
 		//doing zoom in or out
@@ -206,32 +211,33 @@ public class Board {
 	public Color newtonRaphsonColor(double real, double imaginary) {
 		ComplexNumber point = new ComplexNumber(real, imaginary);
 		
-		//System.out.println("BEFORE: " + real + " " + imaginary);
-		
-		//do iterations first
-		for(int i = 0; i < this.newtonRaphsonIterations; i++) {
-			//System.out.println("TERATE");
-			ComplexNumber funcOut = this.calculateOutput(this.function, point);
-			ComplexNumber derivativeOut = this.calculateOutput(this.derivative, point);
-			funcOut.divide(derivativeOut);
-			//System.out.println("FUNC OUT: " + funcOut);
-			point.subtract(funcOut);
-		}
-		
-		//System.out.println("AFTER: " + point.getRe() + " " + point.getIm());
-		
-		//check which root this point is closest to, and return the corresponding color.
-		double dist = MathTools.dist(point.getRe(), point.getIm(), this.roots.get(0).getRe(), this.roots.get(0).getIm());
-		Color ans = this.rootColors.get(0);
-		for(int i = 1; i < this.roots.size(); i++) {
-			double nextDist = MathTools.dist(point.getRe(), point.getIm(), this.roots.get(i).getRe(), this.roots.get(i).getIm());
-			if(nextDist < dist) {
-				ans = this.rootColors.get(i);
-				dist = nextDist;
+		//check if the point is already close enough to a root
+		for(int i = 0; i < this.roots.size(); i++) {
+			double dist = MathTools.dist(real, imaginary, this.roots.get(i).getRe(), this.roots.get(i).getIm());
+			if(dist < this.newtonRaphsonCushion) {
+				return this.rootColors.get(i);
 			}
 		}
 		
-		return ans;
+		//do iterations first
+		for(int i = 0; i < this.newtonRaphsonMaxIterations; i++) {
+			ComplexNumber funcOut = this.calculateOutput(this.function, point);
+			ComplexNumber derivativeOut = this.calculateOutput(this.derivative, point);
+			funcOut.divide(derivativeOut);
+			point.subtract(funcOut);
+			
+			//check if point is close enough to root
+			for(int j = 0; j < this.roots.size(); j++) {
+				double dist = MathTools.dist(point.getRe(), point.getIm(), this.roots.get(j).getRe(), this.roots.get(j).getIm());
+				if(dist < this.newtonRaphsonCushion) {
+					double darknessRatio = 1d - ((double) i / (double) this.newtonRaphsonMaxIterations);
+					return new Color((int) (this.rootColors.get(j).getRed() * darknessRatio), (int) (this.rootColors.get(j).getGreen() * darknessRatio), (int) (this.rootColors.get(j).getBlue() * darknessRatio));
+				}
+			}
+		}
+		
+		//no root has been reached, return black
+		return Color.black;
 		
 	}
 	

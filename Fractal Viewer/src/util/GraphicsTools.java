@@ -10,6 +10,9 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.RescaleOp;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
@@ -100,5 +103,52 @@ public class GraphicsTools {
 		g2d.fillRect(0, 0, b.getWidth(), b.getHeight());
 		
 	    return output;
+	}
+	
+	//loads image from filepath
+	//filepath is relative to this class
+	public static BufferedImage loadImage(String filepath) {
+		BufferedImage img = null;
+		InputStream is;
+		
+		System.out.print("LOADING IMAGE: " + filepath);
+		
+		try {
+			
+			is = GraphicsTools.class.getResourceAsStream(filepath);
+			img = ImageIO.read(is);
+			
+			System.out.println(" SUCCESS");
+			
+		} catch(IOException e) {
+			System.out.println(" FAILED");
+		}
+		
+		return img;
+	}
+	
+	//loads images from spritesheet
+	//goes from top left to bottom right, going horizontally first
+	public static ArrayList<BufferedImage> loadAnimation(String filepath, int width, int height){
+		
+		ArrayList<BufferedImage> animation = new ArrayList<BufferedImage>();
+		
+		BufferedImage animationPng = GraphicsTools.loadImage(filepath);
+		
+		int spritesheetHeight = animationPng.getHeight();
+		int spritesheetWidth = animationPng.getWidth();
+		
+		for(int i = 0; i < spritesheetHeight / height; i++) {
+			for(int j = 0; j < spritesheetWidth / width; j++) {
+				BufferedImage next = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+				Graphics g = next.getGraphics();
+				g.drawImage(animationPng, -(j * width), -(i * height), null);
+				animation.add(next);
+			}
+			
+		}
+		
+		return animation;
+		
 	}
 }

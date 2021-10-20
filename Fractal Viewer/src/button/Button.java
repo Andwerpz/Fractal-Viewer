@@ -62,11 +62,12 @@ public class Button {
 		
 	}
 	
-	public Button(int x, int y, int width, int height, BufferedImage img) {
+	public Button(int x, int y, int width, int height, BufferedImage img, String text) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		this.text = text;
 		
 		this.baseColor = Color.white;
 		this.pressedColor = Color.black;

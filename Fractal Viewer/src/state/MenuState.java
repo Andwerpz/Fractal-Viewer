@@ -6,11 +6,14 @@ import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.image.BufferedImage;
 
 import button.ButtonManager;
 import button.Button;
 import button.SliderButton;
 import button.ToggleButton;
+import main.MainPanel;
+import util.GraphicsTools;
 import util.TextBox;
 
 public class MenuState extends State{
@@ -24,6 +27,13 @@ public class MenuState extends State{
 		super(gsm);
 		
 		bm = new ButtonManager();
+		
+		BufferedImage mandelbrotPreview = GraphicsTools.loadImage("/mandelbrot_preview.png");
+		BufferedImage newtonRaphsonPreview = GraphicsTools.loadImage("/newtonraphson_preview.png");
+		
+		bm.addButton(new Button(-1, 0, MainPanel.WIDTH / 2 + 1, MainPanel.HEIGHT, mandelbrotPreview, "Mandelbrot"));
+		bm.addButton(new Button(MainPanel.WIDTH / 2, 0, MainPanel.WIDTH / 2, MainPanel.HEIGHT, newtonRaphsonPreview, "NewtonRaphson"));
+		
 		board = new Board();
 		
 	}
@@ -43,7 +53,6 @@ public class MenuState extends State{
 
 	@Override
 	public void draw(Graphics g) {
-		board.draw(g, this.mouse);
 		bm.draw(g);
 	}
 
@@ -67,7 +76,23 @@ public class MenuState extends State{
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-
+		String which = this.bm.buttonClicked(arg0);
+		System.out.println(which);
+		if(which != null) {
+			switch(which) {
+			case "Mandelbrot":
+				this.board.mandelbrot = true;
+				this.board.newtonRaphson = false;
+				this.gsm.states.push(new ViewerState(this.gsm, this.board));
+				break;
+				
+			case "NewtonRaphson":
+				this.board.mandelbrot = false;
+				this.board.newtonRaphson = true;
+				this.gsm.states.push(new ViewerState(this.gsm, this.board));
+				break;
+			}
+		}
 	}
 
 	@Override
