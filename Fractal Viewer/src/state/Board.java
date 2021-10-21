@@ -27,9 +27,9 @@ public class Board {
 	public int mandelbrotMaxIterations = 50;	//how many iterations per pixel
 	
 	public boolean newtonRaphson = false;
-	public int newtonRaphsonMaxIterations = 50;	//iterate until you get to a root, or if you can't find one, then color black.
+	public int newtonRaphsonMaxIterations = 30;	//iterate until you get to a root, or if you can't find one, then color black.
 	public double newtonRaphsonCushion = 0.001;	//how close do you have to get to a root to reach it
-	public ArrayList<ComplexNumber> roots = new ArrayList<ComplexNumber>(Arrays.asList(new ComplexNumber(1, 0), new ComplexNumber(-0.5, Math.sqrt(3) / 2d), new ComplexNumber(-0.5, -Math.sqrt(3) / 2d), new ComplexNumber(-1.5, Math.sqrt(3) / 2d), new ComplexNumber(-1.5, -Math.sqrt(3) / 2d)));
+	public ArrayList<ComplexNumber> roots = new ArrayList<ComplexNumber>(Arrays.asList(new ComplexNumber(0, 0), new ComplexNumber(-0.5, Math.sqrt(3) / 2d), new ComplexNumber(-0.5, -Math.sqrt(3) / 2d), new ComplexNumber(-1.5, Math.sqrt(3) / 2d), new ComplexNumber(-1.5, -Math.sqrt(3) / 2d)));
 	public ArrayList<Color> rootColors = new ArrayList<Color>(Arrays.asList(Color.RED, Color.BLUE, Color.GREEN, Color.PINK, Color.CYAN));
 	public ArrayList<ComplexNumber> function = new ArrayList<ComplexNumber>();
 	public ArrayList<ComplexNumber> derivative = new ArrayList<ComplexNumber>();
@@ -63,7 +63,8 @@ public class Board {
 			
 			if(this.rootHeld) {
 				this.roots.set(this.whichRootHeld, new ComplexNumber(curRealMouse.x, curRealMouse.y));
-				this.calculateDerivative(this.roots, this.function);
+				this.function = new ArrayList<ComplexNumber>();
+				this.derivative = this.calculateDerivative(this.roots, this.function);
 			}
 			else {
 				Vector nextRealMouse = new Vector(xLow + (((double) mouse.x / (double) MainPanel.WIDTH) * xRange), yHigh - (((double) mouse.y / (double) MainPanel.HEIGHT) * yRange));
@@ -147,6 +148,9 @@ public class Board {
 	}
 	
 	public ArrayList<ComplexNumber> calculateDerivative(ArrayList<ComplexNumber> roots, ArrayList<ComplexNumber> outFunction) {
+		
+		
+		
 		ArrayList<ComplexNumber> derivative = new ArrayList<ComplexNumber>();
 		
 		//calculate derivative of the original equation
@@ -193,7 +197,8 @@ public class Board {
 		
 		derivative.remove(derivative.size() - 1);
 		
-		//System.out.println("D: " + derivative);
+//		System.out.println("F: " + this.function);
+//		System.out.println("D: " + derivative);
 		
 		return derivative;
 	}
