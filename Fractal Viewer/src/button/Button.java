@@ -25,6 +25,7 @@ public class Button {
 	private int textHeight;
 	
 	private boolean drawImage;	//if true, then no text will be drawn on the button, only an image.
+	private boolean maintainImageAspectRatio; //if true, then the image will be just be drawn to fill the button, without regard to if it goes out of the button
 	private BufferedImage img;
 	
 	public Button(int x, int y, int width, int height, String text) {
@@ -62,7 +63,7 @@ public class Button {
 		
 	}
 	
-	public Button(int x, int y, int width, int height, BufferedImage img, String text) {
+	public Button(int x, int y, int width, int height, BufferedImage img, boolean maintainImageAspectRatio, String text) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
@@ -74,7 +75,24 @@ public class Button {
 		
 		this.drawImage = true;
 		this.img = img;
+		this.maintainImageAspectRatio = maintainImageAspectRatio;
 		
+		if(this.maintainImageAspectRatio) {
+			BufferedImage buttonImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+			Graphics gImg = buttonImg.getGraphics();
+			
+			//calculating ratios between button and input img
+			double widthRatio = (double) width / (double) img.getWidth();	//button width / img width
+			double heightRatio = (double) height / (double) img.getHeight();//button height / img height
+			
+			//enlarge the image to whichever ratio is bigger
+			gImg.drawImage(img, 0, 0, (int) (Math.max(widthRatio, heightRatio) * (double) img.getWidth()), (int) (Math.max(widthRatio, heightRatio) * (double) img.getHeight()), null);
+			
+			System.out.println((int) (Math.max(widthRatio, heightRatio) * (double) img.getWidth()));
+			
+			//set the button img to the new img
+			this.img = buttonImg;
+		}
 	}
 	
 	public void draw(Graphics g) {

@@ -28,11 +28,31 @@ public class MenuState extends State{
 		
 		bm = new ButtonManager();
 		
+		//the menu buttons should be centered within their respective halves
+		
+		int buttonWidth = 250;
+		int buttonHeight = 500;
+		
 		BufferedImage mandelbrotPreview = GraphicsTools.loadImage("/mandelbrot_preview.png");
 		BufferedImage newtonRaphsonPreview = GraphicsTools.loadImage("/newtonraphson_preview.png");
 		
-		bm.addButton(new Button(-1, 0, MainPanel.WIDTH / 2 + 1, MainPanel.HEIGHT, mandelbrotPreview, "Mandelbrot"));
-		bm.addButton(new Button(MainPanel.WIDTH / 2, 0, MainPanel.WIDTH / 2, MainPanel.HEIGHT, newtonRaphsonPreview, "NewtonRaphson"));
+		bm.addButton(new Button(
+				(MainPanel.WIDTH / 2) - MainPanel.WIDTH / 4 - buttonWidth / 2, 
+				(MainPanel.HEIGHT / 2) - buttonHeight / 2, 
+				buttonWidth, 
+				buttonHeight, 
+				mandelbrotPreview, 
+				true, 
+				"Mandelbrot"));
+		
+		bm.addButton(new Button(
+				(MainPanel.WIDTH / 2) + MainPanel.WIDTH / 4 - buttonWidth / 2, 
+				(MainPanel.HEIGHT / 2) - buttonHeight / 2, 
+				buttonWidth, 
+				buttonHeight, 
+				newtonRaphsonPreview, 
+				true, 
+				"NewtonRaphson"));
 		
 		board = new Board();
 		
@@ -53,6 +73,21 @@ public class MenuState extends State{
 
 	@Override
 	public void draw(Graphics g) {
+		
+		Font labelFont = new Font("Dialogue", Font.PLAIN, 36);
+		
+		String mandelbrotLabel = "Mandelbrot";
+		String newtonRaphsonLabel = "Newton - Raphson";
+		
+		int mandelbrotLabelWidth = GraphicsTools.calculateTextWidth(mandelbrotLabel, labelFont);
+		int newtonRaphsonLabelWidth = GraphicsTools.calculateTextWidth(newtonRaphsonLabel, labelFont);
+		
+		g.setFont(labelFont);
+		g.setColor(Color.BLACK);
+		
+		g.drawString(mandelbrotLabel, MainPanel.WIDTH / 4 - mandelbrotLabelWidth / 2, MainPanel.HEIGHT / 6);
+		g.drawString(newtonRaphsonLabel, MainPanel.WIDTH / 2 + MainPanel.WIDTH / 4 - newtonRaphsonLabelWidth / 2, MainPanel.HEIGHT / 6);
+		
 		bm.draw(g);
 	}
 
