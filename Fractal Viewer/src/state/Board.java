@@ -8,6 +8,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import button.ButtonManager;
+import button.SliderButton;
 import main.MainPanel;
 import util.ComplexNumber;
 import util.MathTools;
@@ -15,6 +17,10 @@ import util.Vector;
 import util.Point;
 
 public class Board {
+	
+	ButtonManager bm;
+	
+	public int iterations = 50;	//how many iterations of the function per pixel
 	
 	public boolean mousePressed = false;
 	public java.awt.Point mouse = new java.awt.Point(0, 0);
@@ -24,10 +30,8 @@ public class Board {
 	
 	
 	public boolean mandelbrot = true;
-	public int mandelbrotMaxIterations = 50;	//how many iterations per pixel
 	
 	public boolean newtonRaphson = false;
-	public int newtonRaphsonMaxIterations = 30;	//iterate until you get to a root, or if you can't find one, then color black.
 	public double newtonRaphsonCushion = 0.001;	//how close do you have to get to a root to reach it
 	public ArrayList<ComplexNumber> roots = new ArrayList<ComplexNumber>(Arrays.asList(new ComplexNumber(0, 0), new ComplexNumber(-0.5, Math.sqrt(3) / 2d), new ComplexNumber(-0.5, -Math.sqrt(3) / 2d), new ComplexNumber(-1.5, Math.sqrt(3) / 2d), new ComplexNumber(-1.5, -Math.sqrt(3) / 2d)));
 	public ArrayList<Color> rootColors = new ArrayList<Color>(Arrays.asList(Color.RED, Color.BLUE, Color.GREEN, Color.PINK, Color.CYAN));
@@ -46,10 +50,13 @@ public class Board {
 	public Board() {
 		this.function = new ArrayList<ComplexNumber>();
 		this.derivative = this.calculateDerivative(this.roots, this.function);
+		
+		this.bm = new ButtonManager();
+		this.bm.addSliderButton(new SliderButton(200, 30, 200, 10, 1, 200, "Iterations"));	this.bm.sliderButtons.get(0).setVal(this.iterations);
 	}
 	
 	public void tick(java.awt.Point mouse) {
-
+		bm.tick(mouse);
 	}
 	
 	public void draw(Graphics g, java.awt.Point mouse) {
@@ -86,6 +93,8 @@ public class Board {
 		
 		
 		//drawing the fractal
+		
+		this.iterations = this.bm.sliderButtons.get(0).getVal();
 		
 		BufferedImage fractalImg = new BufferedImage(MainPanel.WIDTH, MainPanel.HEIGHT, BufferedImage.TYPE_INT_RGB);
 		
@@ -139,12 +148,14 @@ public class Board {
 		
 		//drawing ui
 		g.setColor(Color.WHITE);
-		g.fillRect(0, 0, 250, 80);
+		g.fillRect(0, 0, MainPanel.WIDTH, 80);
 		g.setColor(Color.BLACK);
 		g.drawString("View Width: " + xRange, 20, 20);
 		g.drawString("Mouse Position:", 20, 35);
 		g.drawString("X: " + curRealMouse.x, 20, 50);
 		g.drawString("Y: " + curRealMouse.y, 20, 65);
+		
+		bm.draw(g);
 	}
 	
 	public ArrayList<ComplexNumber> calculateDerivative(ArrayList<ComplexNumber> roots, ArrayList<ComplexNumber> outFunction) {
@@ -225,7 +236,7 @@ public class Board {
 		}
 		
 		//do iterations first
-		for(int i = 0; i < this.newtonRaphsonMaxIterations; i++) {
+		for(int i = 0; i < this.iterations; i++) {
 			ComplexNumber funcOut = this.calculateOutput(this.function, point);
 			ComplexNumber derivativeOut = this.calculateOutput(this.derivative, point);
 			funcOut.divide(derivativeOut);
@@ -235,7 +246,7 @@ public class Board {
 			for(int j = 0; j < this.roots.size(); j++) {
 				double dist = MathTools.dist(point.getRe(), point.getIm(), this.roots.get(j).getRe(), this.roots.get(j).getIm());
 				if(dist < this.newtonRaphsonCushion) {
-					double darknessRatio = 1d - ((double) i / (double) this.newtonRaphsonMaxIterations);
+					double darknessRatio = 1d - ((double) i / (double) this.iterations);
 					return new Color((int) (this.rootColors.get(j).getRed() * darknessRatio), (int) (this.rootColors.get(j).getGreen() * darknessRatio), (int) (this.rootColors.get(j).getBlue() * darknessRatio));
 				}
 			}
@@ -251,11 +262,11 @@ public class Board {
 		ComplexNumber c = new ComplexNumber(real, imaginary);
 		ComplexNumber out = new ComplexNumber(0, 0);
 		
-		for(int i = 0; i < mandelbrotMaxIterations; i++) {
+		for(int i = 0; i < this.iterations; i++) {
 			//System.out.println(c.mod() + " : " + out);
 			
 			if(Math.abs(out.mod()) > 2) {
-				return new Color((int) (((double) i / (double) mandelbrotMaxIterations) * 255), (int) (((double) i / (double) mandelbrotMaxIterations) * 255), 255);
+				return new Color((int) (((double) i / (double) this.iterations) * 255), (int) (((double) i / (double) this.iterations) * 255), 255);
 			}
 			//System.out.println("BEFORE: " + out);
 			out = out.square();
@@ -269,6 +280,10 @@ public class Board {
 	}
 	
 	public void mousePressed(MouseEvent arg0) {
+		bm.pressed(arg0);
+		if(bm.getPressed(arg0)) {
+			return;
+		}
 		this.mousePressed = true;
 		
 		//if newton-raphson, then check if the mouse was pressed over a root
@@ -286,6 +301,7 @@ public class Board {
 	}
 	
 	public void mouseReleased() {
+		bm.mouseReleased();
 		this.mousePressed = false;
 		this.rootHeld = false;
 	}
